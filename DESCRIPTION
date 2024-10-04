@@ -1,0 +1,12 @@
+Package: SPHMSE
+Title: MSE functions for Southern Pacific Hake, Chile
+Version: 0.1.0
+Authors@R: 
+    person("Quang", "Huynh", , "quang@bluematterscience.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: Supports the operating model approach to management of common hake in Chile.
+License: GPL (>= 3)
+Depends: R, MSEtool, SAMtool, dplyr
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
