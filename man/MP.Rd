@@ -17,19 +17,51 @@ Sin_Pesca(x, Data, ...)
 
 Manejo_Perfecto(x, Data, reps = 1, ...)
 
-PM_A(x = 1, Data, reps = 1)
+PM_A(x = 1, Data, reps = 1, CBA_previous)
 
-PM_B(x = 1, Data, reps = 1)
+PM_B(x = 1, Data, reps = 1, CBA_previous)
 
-PM_C(x = 1, Data, reps = 1)
+PM_C(x = 1, Data, reps = 1, CBA_previous)
 
-I3(x = 1, Data, y = 3, lambda = c(2, 1), delta = c(0.9, 1.1), ...)
+I3(
+  x = 1,
+  Data,
+  y = 3,
+  lambda = c(2, 1),
+  delta = c(0.9, 1.1),
+  CBA_previous,
+  ...
+)
 
-I5(x = 1, Data, y = 5, lambda = c(2, 1), delta = c(0.9, 1.1), ...)
+I5(
+  x = 1,
+  Data,
+  y = 5,
+  lambda = c(2, 1),
+  delta = c(0.9, 1.1),
+  CBA_previous,
+  ...
+)
 
-I3_lambda1(x = 1, Data, y = 3, lambda = c(1, 1), delta = c(0.9, 1.1), ...)
+I3_lambda1(
+  x = 1,
+  Data,
+  y = 3,
+  lambda = c(1, 1),
+  delta = c(0.9, 1.1),
+  CBA_previous,
+  ...
+)
 
-I5_lambda1(x = 1, Data, y = 5, lambda = c(1, 1), delta = c(0.9, 1.1), ...)
+I5_lambda1(
+  x = 1,
+  Data,
+  y = 5,
+  lambda = c(1, 1),
+  delta = c(0.9, 1.1),
+  CBA_previous,
+  ...
+)
 }
 \arguments{
 \item{x}{Integer, simulation number}
@@ -37,6 +69,9 @@ I5_lambda1(x = 1, Data, y = 5, lambda = c(1, 1), delta = c(0.9, 1.1), ...)
 \item{Data}{\link[MSEtool:Data-class]{MSEtool::Data} object}
 
 \item{...}{Additional arguments (not used)}
+
+\item{CBA_previous}{Numeric, the CBA in the previous year, used to calculate the CBA for the following year. Only used if \code{max(Data@Year) == Data@LHYear}.
+If not provided, uses a value of 41.4 t (2022 CBA).}
 
 \item{y}{Integer, length of years for calculating the trend, i.e., slope, in the index}
 
@@ -74,3 +109,9 @@ I3_lambda1 is an index-based management procedure proposed by SSPA (slope over 3
 
 I5_lambda1 is an index-based management procedure proposed by SSPA (slope over 5 years with symmetric lambda)
 }
+\section{Model-based MPs}{
+
+Model-based MPs use the RCM model (coded in TMB). By default, the RCM object developed from data to 2023 is located in \code{SPHenv$RCM_hake}.
+To update the model for the MP, replace \code{SPHenv$RCM_hake} with a new \code{RCModel-class} object.
+}
+

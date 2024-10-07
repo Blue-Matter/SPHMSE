@@ -62,6 +62,13 @@ formals(SPH_B)$relF <- c(0.75, 1)
 formals(SPH_C)$OCP <- c(0.25, 0.5, 0.95)
 formals(SPH_C)$relF <- c(0.1, 0.6, 0.95)
 
+# Additional functions for stochastic MP code
+catch_eq <- function(Ftarget, M, N, wt, sel) {
+  Fage <- sel * Ftarget
+  Z <- Fage + M
+  CAA <- Fage/Z * (1 - exp(-Z)) * N
+  sum(CAA * wt)
+}
 
 # See SAMtool:::linesegment to verify harvest control rule with low compliance
 #BMSY <- 0.4 # BMSY = 0.4 B0
@@ -97,11 +104,11 @@ formals(SPH_C)$relF <- c(0.1, 0.6, 0.95)
 #' Creates a management procedure from an assessment and harvest control rule
 #'
 #' @param HCR_fn A harvest control rule function that converts assessment output into catch advice, excluding hyper-rule
-#' @param hake_assess A function that fits the assessment model from a Data object
 #' @param delta Vector length 2, minimum and maximum change in CBA (applied after lambda)
 #' @returns A MP function that generates the CBA
+#' @import MSEtool SAMtool
 #' @export
-make_hake_MP <- function(HCR_fn, hake_assess, delta = c(0.85, 1.15)) {
+make_hake_MP <- function(HCR_fn, delta = c(0.85, 1.15)) {
   HCR_fn <- substitute(HCR_fn)
   delta <- substitute(delta)
   hake_assess <- substitute(hake_assess)
@@ -114,7 +121,9 @@ make_hake_MP <- function(HCR_fn, hake_assess, delta = c(0.85, 1.15)) {
     }
 
     # Fit assessment
-    Mod <- .(hake_assess)(x, Data)
+    if (is.null(SPHenv$RCM_hake)) stop("No RCM model was found in SPHenv$RCM_hake")
+    hake_assess <- RCM2Assess(SPHenv$RCM_hake)
+    Mod <- hake_assess(x, Data)
 
     Rec <- new("Rec")
     Rec@Misc <- list(IAA = Data@Misc[[x]]$IAA)
@@ -126,12 +135,49 @@ make_hake_MP <- function(HCR_fn, hake_assess, delta = c(0.85, 1.15)) {
     }
 
     # Run harvest control rule to calculate the TAC
-    CBA <- .(HCR_fn)(Mod)@TAC
+    if (reps > 1) {
+      # Sample depletion from covariance matrix
+      cov_matrix <- Mod@SD$cov.fixed
+      samp_par <- mvtnorm::rmvnorm(reps, mean = Mod@SD$par.fixed, sigma = cov_matrix)
+      samp_report <- lapply(1:reps, function(i) {
+        Mod@obj$report(samp_par[i, ]) %>%
+          SAMtool:::RCM_posthoc_adjust(obj = Mod@obj, par = samp_par[i, ])
+      })
+
+      SSB <- sapply(samp_report, getElement, "E")
+      SSB0 <- sapply(samp_report, getElement, "E0_SR")
+      B_B0 <- SSB[nrow(SSB) - 1, ]/SSB0
+
+      N <- sapply(samp_report, function(x) x$N[nrow(x$N), ])
+      sel <- sapply(samp_report, function(x) {
+        F_at_age <- x$F_at_age[nrow(x$F_at_age), ]
+        F_at_age/max(F_at_age)
+      })
+
+      wt <- Mod@obj$env$data$wt
+      wt <- wt[nrow(wt), ]
+
+      M <- Mod@obj$env$data$M_data
+      M <- M[nrow(M), ]
+
+      F40 <- SAMtool:::get_FSPR(Mod@forecast$per_recruit$FM, Mod@forecast$per_recruit$SPR, target = 0.4)
+
+      alpha <- SAMtool:::HCRlinesegment(B_B0, OCP = formals(.(HCR_fn))$OCP, relF = formals(.(HCR_fn))$relF)
+
+      CBA <- sapply(1:reps, function(i) catch_eq(alpha[i] * F40, M = M, N = N[, i], wt = wt, sel = sel[, i]))
+
+    } else if (reps == 1) {
+      B_B0 <- Mod@SSB_SSB0[length(Mod@SSB_SSB0)]
+      CBA <- .(HCR_fn)(Mod)@TAC
+    }
 
     # Retrieve the previous CBA
     if (max(Data@Year) == Data@LHYear) {
-      # If we are at the beginning of the projection, we specify the real 2022 CBA
-      CBA_previous <- 41.4
+
+      if (missing(CBA_previous)) {
+        # If we are at the beginning of the projection, we specify the real 2022 CBA
+        CBA_previous <- 41.4
+      }
     } else {
       CBA_previous <- Data@MPrec[x]
     }
@@ -139,8 +185,8 @@ make_hake_MP <- function(HCR_fn, hake_assess, delta = c(0.85, 1.15)) {
     delta <- .(delta)
     CBA_range <- delta * CBA_previous
 
-    if (CBA < min(CBA_range)) CBA <- min(CBA_range)
-    if (CBA > max(CBA_range)) CBA <- max(CBA_range)
+    CBA[CBA < min(CBA_range)] <- min(CBA_range)
+    CBA[CBA > max(CBA_range)] <- max(CBA_range)
 
     Rec@TAC <- CBA
     return(Rec)
@@ -148,33 +194,37 @@ make_hake_MP <- function(HCR_fn, hake_assess, delta = c(0.85, 1.15)) {
 
   hake_MP <- eval(
     call("function",
-         as.pairlist(alist(x = 1, Data = , reps = 1)),
+         as.pairlist(alist(x = 1, Data = , reps = 1, CBA_previous = )),
          fn_body)
   )
   return(structure(hake_MP, class = "MP"))
 }
 
-the <- new.env(parent = emptyenv())
-load("data/RCM_hake_2023.rda", envir = the)
-
-#' @import MSEtool SAMtool
-#' @include RCM2Assess.R
-hake_assess_2023 <- RCM2Assess(the$RCM_hake_2023)
+#' Environment for storing hake assessment object
+#'
+#' An environment that stores variables for the hake assessment.
+#' @export
+SPHenv <- new.env(parent = emptyenv())
+load("data/RCM_hake_2023.rda", envir = SPHenv)
+SPHenv$RCM_hake <- SPHenv$RCM_hake_2023
 
 #' @name MP
 #' @details PM_A fits an assessment model and applies the low-compliance control rule for the CBA
+#' @section Model-based MPs:
+#' Model-based MPs use the RCM model (coded in TMB). By default, the RCM object developed from data to 2023 is located in `SPHenv$RCM_hake`.
+#' To update the model for the MP, replace `SPHenv$RCM_hake` with a new `RCModel-class` object.
 #' @export
-PM_A <- make_hake_MP(SPH_A, hake_assess_2023)
+PM_A <- make_hake_MP(SPH_A)
 
 #' @name MP
 #' @details PM_B fits an assessment model and applies the high-compliance control rule for the CBA
 #' @export
-PM_B <- make_hake_MP(SPH_B, hake_assess_2023)
+PM_B <- make_hake_MP(SPH_B)
 
 #' @name MP
 #' @details PM_C fits an assessment model and applies the ramped harvest control rule for the CBA
 #' @export
-PM_C <- make_hake_MP(SPH_C, hake_assess_2023)
+PM_C <- make_hake_MP(SPH_C)
 
 #PM_Actual <- function(x, Data, reps = 1, delta = c(0.85, 1.15), HCR_fn = SPH_A, ...) {
 #
@@ -210,8 +260,10 @@ PM_C <- make_hake_MP(SPH_C, hake_assess_2023)
 #' @param y Integer, length of years for calculating the trend, i.e., slope, in the index
 #' @param lambda Vector length 2, change in CBA relative to slope. First value if slope < 0, second value if lambda > 0
 #' @param delta Vector length 2, minimum and maximum change in CBA (applied after lambda)
+#' @param CBA_previous Numeric, the CBA in the previous year, used to calculate the CBA for the following year. Only used if `max(Data@Year) == Data@LHYear`.
+#' If not provided, uses a value of 41.4 t (2022 CBA).
 #' @export
-I3 <- function(x = 1, Data, y = 3, lambda = c(2, 1), delta = c(0.9, 1.1), ...) {
+I3 <- function(x = 1, Data, y = 3, lambda = c(2, 1), delta = c(0.9, 1.1), CBA_previous, ...) {
 
   # Index series
   Ind <- Data@AddInd[x, 1, ]
@@ -232,8 +284,12 @@ I3 <- function(x = 1, Data, y = 3, lambda = c(2, 1), delta = c(0.9, 1.1), ...) {
 
   # Calculate the new CBA
   if (max(Data@Year) == Data@LHYear) {
-    # If we are at the beginning of the projection, we specify the real 2022 CBA
-    CBA_previous <- 41.4
+
+    if (missing(CBA_previous)) {
+      # If we are at the beginning of the projection, we specify the real 2022 CBA
+      CBA_previous <- 41.4
+    }
+
   } else {
     CBA_previous <- Data@MPrec[x]
   }

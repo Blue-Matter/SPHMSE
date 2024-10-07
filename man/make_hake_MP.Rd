@@ -4,12 +4,10 @@
 \alias{make_hake_MP}
 \title{Make model-based management procedure}
 \usage{
-make_hake_MP(HCR_fn, hake_assess, delta = c(0.85, 1.15))
+make_hake_MP(HCR_fn, delta = c(0.85, 1.15))
 }
 \arguments{
 \item{HCR_fn}{A harvest control rule function that converts assessment output into catch advice, excluding hyper-rule}
-
-\item{hake_assess}{A function that fits the assessment model from a Data object}
 
 \item{delta}{Vector length 2, minimum and maximum change in CBA (applied after lambda)}
 }
