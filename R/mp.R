@@ -92,10 +92,19 @@ formals(SPH_C)$relF <- c(0.1, 0.6, 0.95)
 #hake_RCM <- readRDS("RCM/RCM_hake1.rds")
 #hake_assess <- RCM2Assess(hake_RCM)
 
-# Basic structure of current management procedure with low compliance
-make_hake_MP <- function(HCR_fn, delta = c(0.85, 1.15)) {
+#' Make model-based management procedure
+#'
+#' Creates a management procedure from an assessment and harvest control rule
+#'
+#' @param HCR_fn A harvest control rule function that converts assessment output into catch advice, excluding hyper-rule
+#' @param hake_assess A function that fits the assessment model from a Data object
+#' @param delta Vector length 2, minimum and maximum change in CBA (applied after lambda)
+#' @returns A MP function that generates the CBA
+#' @export
+make_hake_MP <- function(HCR_fn, hake_assess, delta = c(0.85, 1.15)) {
   HCR_fn <- substitute(HCR_fn)
   delta <- substitute(delta)
+  hake_assess <- substitute(hake_assess)
 
   fn_body <- bquote({
 
@@ -105,7 +114,7 @@ make_hake_MP <- function(HCR_fn, delta = c(0.85, 1.15)) {
     }
 
     # Fit assessment
-    Mod <- hake_assess(x, Data)
+    Mod <- .(hake_assess)(x, Data)
 
     Rec <- new("Rec")
     Rec@Misc <- list(IAA = Data@Misc[[x]]$IAA)
@@ -145,20 +154,27 @@ make_hake_MP <- function(HCR_fn, delta = c(0.85, 1.15)) {
   return(structure(hake_MP, class = "MP"))
 }
 
-#' @name MP
-#' @details PM_A fits an assessment model and applies the high-compliance control rule for the CBA
-#' @export
-PM_A <- make_hake_MP(SPH_A)
+the <- new.env(parent = emptyenv())
+load("data/RCM_hake_2023.rda", envir = the)
+
+#' @import MSEtool SAMtool
+#' @include RCM2Assess.R
+hake_assess_2023 <- RCM2Assess(the$RCM_hake_2023)
 
 #' @name MP
-#' @details PM_B fits an assessment model and applies the low-compliance control rule for the CBA
+#' @details PM_A fits an assessment model and applies the low-compliance control rule for the CBA
 #' @export
-PM_B <- make_hake_MP(SPH_B)
+PM_A <- make_hake_MP(SPH_A, hake_assess_2023)
+
+#' @name MP
+#' @details PM_B fits an assessment model and applies the high-compliance control rule for the CBA
+#' @export
+PM_B <- make_hake_MP(SPH_B, hake_assess_2023)
 
 #' @name MP
 #' @details PM_C fits an assessment model and applies the ramped harvest control rule for the CBA
 #' @export
-PM_C <- make_hake_MP(SPH_C)
+PM_C <- make_hake_MP(SPH_C, hake_assess_2023)
 
 #PM_Actual <- function(x, Data, reps = 1, delta = c(0.85, 1.15), HCR_fn = SPH_A, ...) {
 #

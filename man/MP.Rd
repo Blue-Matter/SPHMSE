@@ -60,9 +60,9 @@ Effort can also be more efficient/powerful in the projection
 This code ensures that the correct fishing mortality is specified regardless of the
 improvement in the fishing effort, based on \code{MSEtool::FMSYref()}
 
-PM_A fits an assessment model and applies the high-compliance control rule for the CBA
+PM_A fits an assessment model and applies the low-compliance control rule for the CBA
 
-PM_B fits an assessment model and applies the low-compliance control rule for the CBA
+PM_B fits an assessment model and applies the high-compliance control rule for the CBA
 
 PM_C fits an assessment model and applies the ramped harvest control rule for the CBA
 
