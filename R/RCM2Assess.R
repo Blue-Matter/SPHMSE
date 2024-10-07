@@ -39,6 +39,14 @@ simIAA <- function(x, Data, N_OM) {
 }
 
 
+#' Make hake assessment model
+#'
+#' Convert an operating model conditioned by RCM (TMB estimation model) into an assessment model for simulation testing of management procedures
+#'
+#' @param RCModel [SAMtool::RCModel-class] object returned by [SAMtool::RCM()]. The estimation model will be converted to an assessment function
+#'
+#' @returns A function that can be used in a management procedure
+#' @export
 RCM2Assess <- function(RCModel) {
 
   .data <- RCModel@mean_fit$obj$env$data
@@ -68,7 +76,7 @@ RCM2Assess <- function(RCModel) {
   force(.parameters)
   force(.map)
   force(rcm_data)
-  
+
   force(.stockpars)
   force(.fleetpars)
 
