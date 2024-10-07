@@ -10,3 +10,13 @@ Imports: MSEtool, SAMtool, dplyr, ggplot2, purrr, reshape2, utils
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Depends: 
+    R (>= 2.10)
+LazyData: true
+Collate: 
+    'RCM2Assess.R'
+    'mp.R'
+    'om.R'
+    'pm.R'
+    'proj-figures.R'
+    'zzz.R'
