@@ -6,3 +6,8 @@
             packageVersion("SAMtool"), " is detected.")
   }
 }
+
+#' @importFrom utils globalVariables
+if (getRversion() >= "2.15.1") {
+  utils::globalVariables(c("value", "MP", "name", "Year", "Simulation", "OM", "med", "lwr2", "upr2", "Sim", "type", "txt", ".", "scenario"))
+}

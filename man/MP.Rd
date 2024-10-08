@@ -13,7 +13,7 @@
 \alias{I5_lambda1}
 \title{Hake management procedures}
 \usage{
-Sin_Pesca(x, Data, ...)
+Sin_Pesca(x, Data, reps = 1, ...)
 
 Manejo_Perfecto(x, Data, reps = 1, ...)
 
@@ -67,6 +67,8 @@ I5_lambda1(
 \item{x}{Integer, simulation number}
 
 \item{Data}{\link[MSEtool:Data-class]{MSEtool::Data} object}
+
+\item{reps}{Integer, number of stochastic replicates for generating the advice. Not defined for index-based MPs.}
 
 \item{...}{Additional arguments (not used)}
 

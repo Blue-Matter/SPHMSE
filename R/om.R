@@ -289,6 +289,7 @@ make_hake_OM <- function(
 #' @name make_hake_OM
 #' @param jjdir Directory of the JJM assessment
 #' @param model Character string for name of model
+#' @importFrom stats nlminb rnorm
 #' @export
 make_hake_OM_AMAC <- function(
     jjdir = "admb-assessment/om2",
@@ -311,10 +312,14 @@ make_hake_OM_AMAC <- function(
     res <- readRDS(file.path(jjdir, "jjmR_hake.rds"))
   } else {
 
-    if (!"jjmR" %in% installed.packages()) {
-      message("Installing jjmr package from Github..")
-      remotes::install_github("SPRFMO/jjmr")
+    if (!requireNamespace("jjmR", quietly = FALSE)) {
+      stop("Need to install jjmr package from Github: remotes::install_github(\"SPRFMO/jjmr\")")
     }
+
+    #if (!"jjmR" %in% installed.packages()) {
+    #  message("Installing jjmr package from Github..")
+    #  remotes::install_github("SPRFMO/jjmr")
+    #}
     dir_cur <- getwd()
     on.exit(setwd(dir_cur))
     setwd(jjdir)

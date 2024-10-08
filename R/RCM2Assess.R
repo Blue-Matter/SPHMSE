@@ -46,6 +46,7 @@ simIAA <- function(x, Data, N_OM) {
 #' @param RCModel [SAMtool::RCModel-class] object returned by [SAMtool::RCM()]. The estimation model will be converted to an assessment function
 #'
 #' @returns A function that can be used in a management procedure
+#' @importFrom abind abind
 #' @export
 RCM2Assess <- function(RCModel) {
 

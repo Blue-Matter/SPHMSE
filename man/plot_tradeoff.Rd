@@ -26,6 +26,8 @@ plot_tradeoff(
 
 \item{mp}{An optional character vector of MPs to include. By default includes all.}
 
+\item{mp_ref}{Character vector of reference management procedures}
+
 \item{nudge_x}{How far to nudge the labels left/right from the x-value for \link[ggplot2]{geom_text}}
 
 \item{nudge_y}{How far to nudge the labels up/down from the y-value for \link[ggplot2]{geom_text}}

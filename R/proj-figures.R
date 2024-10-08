@@ -68,6 +68,8 @@
 #' @param sims Integer vector for a subset of simulations to plot
 #' @param type Character for the state variable to plot
 #' @returns A ggplot2 object
+#' @importFrom stats median quantile
+#' @importFrom methods is
 #' @export
 plot_array <- function(MSE, names = "", sims, type = c("SB", "B_BMSY", "F_FMSY", "CBA", "Index", "Catch", "R")) {
   type <- match.arg(type)
@@ -151,7 +153,7 @@ plot_array <- function(MSE, names = "", sims, type = c("SB", "B_BMSY", "F_FMSY",
   g
 }
 
-
+#' @importFrom graphics matpoints legend abline
 plot_HCR <- function(B_B0, F_FMSY) {
   Brel <- seq(0, 1, length.out = 200)
   Frel <- HCRlin(Brel, 0.2, 0.4, 0.75, 1)
@@ -167,7 +169,7 @@ plot_HCR <- function(B_B0, F_FMSY) {
     }
   )
   if (!missing(B_B0) && !missing(F_FMSY)) {
-    matpoints(B_B0, F_FMSY, pch = 1, typ = "p")
+    matpoints(B_B0, F_FMSY, pch = 1, type = "p")
     legend(
       "bottomright",
       c("HCR", "Operating model"),

@@ -169,6 +169,7 @@ NSP_LP <- function(MSEobj) {
 }
 class(NSP_LP) <- "PM"
 
+#' @importFrom methods new
 .CBA <- function(MSEobj, Yrs = c(1, 5), Ref = 20, type = c("min", "mean", "var")) {
   type <- match.arg(type)
 
@@ -382,7 +383,7 @@ make_gg_df <- function(.probs_dat, .name, mp_order = NULL, do_approx = TRUE, sor
 #' taken from \url{https://github.com/pbs-assess/ggmse/blob/master/R/figures-tigure.R}
 #'
 #' @param probs_dat List of data frames containing performance measures
-#' @param name Character vector of operating model names corresponding to `probs_dat`
+#' @param names Character vector of operating model names corresponding to `probs_dat`
 #' @param ncol Integer, optional number of columns.
 #' @param relative_max Make the plot have each column use a relative maximum. If
 #'   `scale_0_1` is used, this will be ignored
@@ -472,6 +473,7 @@ plot_table <- function(
 #' @param mp An optional character vector of MPs to include. By default includes all.
 #' @param nudge_x How far to nudge the labels left/right from the x-value for \link[ggplot2]{geom_text}
 #' @param nudge_y How far to nudge the labels up/down from the y-value for \link[ggplot2]{geom_text}
+#' @param mp_ref Character vector of reference management procedures
 #' @return A ggplot2 object
 #' @import reshape2
 #' @export
@@ -536,7 +538,7 @@ plot_tradeoff <- function(
   g
 }
 
-
+#' @importFrom methods slot
 PM_fn <- function(.mse, PMs, all_sims = FALSE) {
   if (all_sims) {
     PMobj <- sapply(1:length(PMs), function(i) {
@@ -568,6 +570,7 @@ cumulative_mean <- function(PMobj) {
   return(x)
 }
 
+#' @importFrom rlang .env
 plot_cumulative_PM <- function(x, MP = dimnames(x)$MP, PM = "NZR_MP") {
   df <- reshape2::melt(x) %>%
     filter(MP %in% .env$MP, PM %in% .env$PM, !is.na(value))

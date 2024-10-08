@@ -13,9 +13,9 @@ NULL
 #' @details
 #' Sin_Pesca: No fishing reference MP, effort-based and thus will not be subject to CBA implementation error
 #' @export
-Sin_Pesca <- function(x, Data, ...) {
+Sin_Pesca <- function(x, Data, reps = 1, ...) {
   rec <- new("Rec") # create recommendation object
-  rec@Effort <- 1e-15
+  rec@Effort <- rep(1e-15, reps)
   rec
 }
 class(Sin_Pesca) <- "MP"
@@ -43,7 +43,7 @@ Manejo_Perfecto <- function(x, Data, reps = 1, ...) {
   MSYE <- FMSY/qcur # effort for this year's FMSY
 
   Rec <- new('Rec')
-  Rec@Effort <- 0.95 * MSYE/HistE
+  Rec@Effort <- rep(0.95 * MSYE/HistE, reps)
   Rec
 }
 class(Manejo_Perfecto) <- "MP"
@@ -107,6 +107,7 @@ catch_eq <- function(Ftarget, M, N, wt, sel) {
 #' @param delta Vector length 2, minimum and maximum change in CBA (applied after lambda)
 #' @returns A MP function that generates the CBA
 #' @import MSEtool SAMtool
+#' @importFrom mvtnorm rmvnorm
 #' @export
 make_hake_MP <- function(HCR_fn, delta = c(0.85, 1.15)) {
   HCR_fn <- substitute(HCR_fn)
@@ -208,8 +209,16 @@ SPHenv <- new.env(parent = emptyenv())
 load("data/RCM_hake_2023.rda", envir = SPHenv)
 SPHenv$RCM_hake <- SPHenv$RCM_hake_2023
 
+#' @name RCM_hake_2023
+#' @title Hake assessment 2023
+#' @description TMB model fitted to common hake in 2023 to replicate ADMB assessment
+#' @examples
+#' data(RCM_hake_2023)
+NULL
+
 #' @name MP
 #' @details PM_A fits an assessment model and applies the low-compliance control rule for the CBA
+#' @param reps Integer, number of stochastic replicates for generating the advice. Not defined for index-based MPs.
 #' @section Model-based MPs:
 #' Model-based MPs use the RCM model (coded in TMB). By default, the RCM object developed from data to 2023 is located in `SPHenv$RCM_hake`.
 #' To update the model for the MP, replace `SPHenv$RCM_hake` with a new `RCModel-class` object.
@@ -262,6 +271,7 @@ PM_C <- make_hake_MP(SPH_C)
 #' @param delta Vector length 2, minimum and maximum change in CBA (applied after lambda)
 #' @param CBA_previous Numeric, the CBA in the previous year, used to calculate the CBA for the following year. Only used if `max(Data@Year) == Data@LHYear`.
 #' If not provided, uses a value of 41.4 t (2022 CBA).
+#' @importFrom stats lm coef
 #' @export
 I3 <- function(x = 1, Data, y = 3, lambda = c(2, 1), delta = c(0.9, 1.1), CBA_previous, ...) {
 

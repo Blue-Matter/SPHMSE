@@ -20,6 +20,8 @@ plot_table(
 \arguments{
 \item{probs_dat}{List of data frames containing performance measures}
 
+\item{names}{Character vector of operating model names corresponding to \code{probs_dat}}
+
 \item{ncol}{Integer, optional number of columns.}
 
 \item{relative_max}{Make the plot have each column use a relative maximum. If
@@ -40,8 +42,6 @@ the performance metrics and the values correspond to the values above which
 
 \item{do_approx}{Logical. If \code{TRUE}, values greater than 0.99 are replaced with ">0.99" and less than 0.01 are replaced
 "<0.01".}
-
-\item{name}{Character vector of operating model names corresponding to \code{probs_dat}}
 }
 \value{
 A ggplot2 object
