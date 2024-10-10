@@ -147,9 +147,10 @@ make_hake_MP <- function(HCR_fn, delta = c(0.85, 1.15)) {
           SAMtool:::RCM_posthoc_adjust(obj = Mod@obj, par = samp_par[i, ])
       })
 
-      SSB <- sapply(samp_report, getElement, "E")
+      nyears <- length(Mod@SSB)
+      SSB <- sapply(samp_report, function(x) x$E[nyears])
       SSB0 <- sapply(samp_report, getElement, "E0_SR")
-      B_B0 <- SSB[nrow(SSB) - 1, ]/SSB0
+      B_B0 <- SSB/SSB0
 
       N <- sapply(samp_report, function(x) x$N[nrow(x$N), ])
       sel <- sapply(samp_report, function(x) {
@@ -191,13 +192,18 @@ make_hake_MP <- function(HCR_fn, delta = c(0.85, 1.15)) {
     CBA[CBA < min(CBA_range)] <- min(CBA_range)
     CBA[CBA > max(CBA_range)] <- max(CBA_range)
 
+    if (verbose) {
+      message("Range of B/B0: ", paste(round(range(B_B0), 2), collapse = " - "))
+      message("Maximum CBA range: ", paste(round(range(CBA_range), 2), collapse = " - "))
+    }
+
     Rec@TAC <- CBA
     return(Rec)
   })
 
   hake_MP <- eval(
     call("function",
-         as.pairlist(alist(x = 1, Data = , reps = 1, CBA_previous = , seed = 1)),
+         as.pairlist(alist(x = 1, Data = , reps = 1, CBA_previous = , seed = 1, verbose = FALSE)),
          fn_body)
   )
   return(structure(hake_MP, class = "MP"))
@@ -273,6 +279,7 @@ PM_C <- make_hake_MP(SPH_C)
 #' @param delta Vector length 2, minimum and maximum change in CBA (applied after lambda)
 #' @param CBA_previous Numeric, the CBA in the previous year, used to calculate the CBA for the following year. Only used if `max(Data@Year) == Data@LHYear`.
 #' If not provided, uses a value of 41.4 t (2022 CBA).
+#' @param verbose Logical, whether to report intermediary steps for the CBA calculation to console
 #' @param seed Integer to set the random number generator when sampling the covariance matrix (when `reps` > 1)
 #' @importFrom stats lm coef
 #' @export
