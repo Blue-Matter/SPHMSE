@@ -139,6 +139,8 @@ make_hake_MP <- function(HCR_fn, delta = c(0.85, 1.15)) {
     if (reps > 1) {
       # Sample depletion from covariance matrix
       cov_matrix <- Mod@SD$cov.fixed
+
+      set.seed(seed)
       samp_par <- mvtnorm::rmvnorm(reps, mean = Mod@SD$par.fixed, sigma = cov_matrix)
       samp_report <- lapply(1:reps, function(i) {
         Mod@obj$report(samp_par[i, ]) %>%
@@ -195,7 +197,7 @@ make_hake_MP <- function(HCR_fn, delta = c(0.85, 1.15)) {
 
   hake_MP <- eval(
     call("function",
-         as.pairlist(alist(x = 1, Data = , reps = 1, CBA_previous = )),
+         as.pairlist(alist(x = 1, Data = , reps = 1, CBA_previous = , seed = 1)),
          fn_body)
   )
   return(structure(hake_MP, class = "MP"))
@@ -271,6 +273,7 @@ PM_C <- make_hake_MP(SPH_C)
 #' @param delta Vector length 2, minimum and maximum change in CBA (applied after lambda)
 #' @param CBA_previous Numeric, the CBA in the previous year, used to calculate the CBA for the following year. Only used if `max(Data@Year) == Data@LHYear`.
 #' If not provided, uses a value of 41.4 t (2022 CBA).
+#' @param seed Integer to set the random number generator when sampling the covariance matrix (when `reps` > 1)
 #' @importFrom stats lm coef
 #' @export
 I3 <- function(x = 1, Data, y = 3, lambda = c(2, 1), delta = c(0.9, 1.1), CBA_previous, ...) {

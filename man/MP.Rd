@@ -17,11 +17,11 @@ Sin_Pesca(x, Data, reps = 1, ...)
 
 Manejo_Perfecto(x, Data, reps = 1, ...)
 
-PM_A(x = 1, Data, reps = 1, CBA_previous)
+PM_A(x = 1, Data, reps = 1, CBA_previous, seed = 1)
 
-PM_B(x = 1, Data, reps = 1, CBA_previous)
+PM_B(x = 1, Data, reps = 1, CBA_previous, seed = 1)
 
-PM_C(x = 1, Data, reps = 1, CBA_previous)
+PM_C(x = 1, Data, reps = 1, CBA_previous, seed = 1)
 
 I3(
   x = 1,
@@ -74,6 +74,8 @@ I5_lambda1(
 
 \item{CBA_previous}{Numeric, the CBA in the previous year, used to calculate the CBA for the following year. Only used if \code{max(Data@Year) == Data@LHYear}.
 If not provided, uses a value of 41.4 t (2022 CBA).}
+
+\item{seed}{Integer to set the random number generator when sampling the covariance matrix (when \code{reps} > 1)}
 
 \item{y}{Integer, length of years for calculating the trend, i.e., slope, in the index}
 
