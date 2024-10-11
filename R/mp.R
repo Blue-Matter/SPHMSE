@@ -109,7 +109,7 @@ catch_eq <- function(Ftarget, M, N, wt, sel) {
 #' @import MSEtool SAMtool
 #' @importFrom mvtnorm rmvnorm
 #' @export
-make_hake_MP <- function(HCR_fn, delta = c(0.85, 1.15)) {
+make_hake_MP <- function(HCR_fn) {
   HCR_fn <- substitute(HCR_fn)
   delta <- substitute(delta)
   hake_assess <- substitute(hake_assess)
@@ -186,7 +186,6 @@ make_hake_MP <- function(HCR_fn, delta = c(0.85, 1.15)) {
       CBA_previous <- Data@MPrec[x]
     }
 
-    delta <- .(delta)
     CBA_range <- delta * CBA_previous
 
     CBA[CBA < min(CBA_range)] <- min(CBA_range)
@@ -203,7 +202,7 @@ make_hake_MP <- function(HCR_fn, delta = c(0.85, 1.15)) {
 
   hake_MP <- eval(
     call("function",
-         as.pairlist(alist(x = 1, Data = , reps = 1, CBA_previous = , seed = 1, verbose = FALSE)),
+         as.pairlist(alist(x = 1, Data = , reps = 1, delta = c(0.85, 1.15), CBA_previous = , seed = 1, verbose = FALSE)),
          fn_body)
   )
   return(structure(hake_MP, class = "MP"))

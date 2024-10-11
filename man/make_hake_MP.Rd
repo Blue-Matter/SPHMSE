@@ -4,7 +4,7 @@
 \alias{make_hake_MP}
 \title{Make model-based management procedure}
 \usage{
-make_hake_MP(HCR_fn, delta = c(0.85, 1.15))
+make_hake_MP(HCR_fn)
 }
 \arguments{
 \item{HCR_fn}{A harvest control rule function that converts assessment output into catch advice, excluding hyper-rule}

@@ -17,11 +17,35 @@ Sin_Pesca(x, Data, reps = 1, ...)
 
 Manejo_Perfecto(x, Data, reps = 1, ...)
 
-PM_A(x = 1, Data, reps = 1, CBA_previous, seed = 1, verbose = FALSE)
+PM_A(
+  x = 1,
+  Data,
+  reps = 1,
+  delta = c(0.85, 1.15),
+  CBA_previous,
+  seed = 1,
+  verbose = FALSE
+)
 
-PM_B(x = 1, Data, reps = 1, CBA_previous, seed = 1, verbose = FALSE)
+PM_B(
+  x = 1,
+  Data,
+  reps = 1,
+  delta = c(0.85, 1.15),
+  CBA_previous,
+  seed = 1,
+  verbose = FALSE
+)
 
-PM_C(x = 1, Data, reps = 1, CBA_previous, seed = 1, verbose = FALSE)
+PM_C(
+  x = 1,
+  Data,
+  reps = 1,
+  delta = c(0.85, 1.15),
+  CBA_previous,
+  seed = 1,
+  verbose = FALSE
+)
 
 I3(
   x = 1,
@@ -72,6 +96,8 @@ I5_lambda1(
 
 \item{...}{Additional arguments (not used)}
 
+\item{delta}{Vector length 2, minimum and maximum change in CBA (applied after lambda)}
+
 \item{CBA_previous}{Numeric, the CBA in the previous year, used to calculate the CBA for the following year. Only used if \code{max(Data@Year) == Data@LHYear}.
 If not provided, uses a value of 41.4 t (2022 CBA).}
 
@@ -82,8 +108,6 @@ If not provided, uses a value of 41.4 t (2022 CBA).}
 \item{y}{Integer, length of years for calculating the trend, i.e., slope, in the index}
 
 \item{lambda}{Vector length 2, change in CBA relative to slope. First value if slope < 0, second value if lambda > 0}
-
-\item{delta}{Vector length 2, minimum and maximum change in CBA (applied after lambda)}
 }
 \value{
 \link[MSEtool:Rec-class]{MSEtool::Rec} object
