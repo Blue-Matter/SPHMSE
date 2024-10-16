@@ -8,8 +8,6 @@ make_hake_MP(HCR_fn)
 }
 \arguments{
 \item{HCR_fn}{A harvest control rule function that converts assessment output into catch advice, excluding hyper-rule}
-
-\item{delta}{Vector length 2, minimum and maximum change in CBA (applied after lambda)}
 }
 \value{
 A MP function that generates the CBA

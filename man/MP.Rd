@@ -7,6 +7,9 @@
 \alias{PM_A}
 \alias{PM_B}
 \alias{PM_C}
+\alias{PM_A_interim}
+\alias{PM_B_interim}
+\alias{PM_C_interim}
 \alias{I3}
 \alias{I5}
 \alias{I3_lambda1}
@@ -44,6 +47,45 @@ PM_C(
   delta = c(0.85, 1.15),
   CBA_previous,
   seed = 1,
+  verbose = FALSE
+)
+
+PM_A_interim(
+  x = 1,
+  Data,
+  reps = 1,
+  delta = c(0.85, 1.15),
+  CBA_previous,
+  seed = 1,
+  assessment_interval = 3,
+  type = c("buffer", "mean", "loess", "none"),
+  type_par = NULL,
+  verbose = FALSE
+)
+
+PM_B_interim(
+  x = 1,
+  Data,
+  reps = 1,
+  delta = c(0.85, 1.15),
+  CBA_previous,
+  seed = 1,
+  assessment_interval = 3,
+  type = c("buffer", "mean", "loess", "none"),
+  type_par = NULL,
+  verbose = FALSE
+)
+
+PM_C_interim(
+  x = 1,
+  Data,
+  reps = 1,
+  delta = c(0.85, 1.15),
+  CBA_previous,
+  seed = 1,
+  assessment_interval = 3,
+  type = c("buffer", "mean", "loess", "none"),
+  type_par = NULL,
   verbose = FALSE
 )
 
@@ -96,7 +138,7 @@ I5_lambda1(
 
 \item{...}{Additional arguments (not used)}
 
-\item{delta}{Vector length 2, minimum and maximum change in CBA (applied after lambda)}
+\item{delta}{Vector length 2, minimum and maximum change in CBA (applied at the last step of the CBA calculation). Set to \code{c(0, Inf)} to remove the hyperrule.}
 
 \item{CBA_previous}{Numeric, the CBA in the previous year, used to calculate the CBA for the following year. Only used if \code{max(Data@Year) == Data@LHYear}.
 If not provided, uses a value of 41.4 t (2022 CBA).}
@@ -104,6 +146,12 @@ If not provided, uses a value of 41.4 t (2022 CBA).}
 \item{seed}{Integer to set the random number generator when sampling the covariance matrix (when \code{reps} > 1)}
 
 \item{verbose}{Logical, whether to report intermediary steps for the CBA calculation to console}
+
+\item{assessment_interval}{Integer, frequency of assessment for the interim MPs (3 years is the default)}
+
+\item{type}{Character, how the index is used to calculate the CBA in the interim procedure. See details.}
+
+\item{type_par}{A control parameter for the interim procedure. See details.}
 
 \item{y}{Integer, length of years for calculating the trend, i.e., slope, in the index}
 
@@ -131,6 +179,16 @@ PM_B fits an assessment model and applies the high-compliance control rule for t
 
 PM_C fits an assessment model and applies the ramped harvest control rule for the CBA
 
+PM_A_interim fits an assessment model once every three years with the low-compliance control rule for the CBA.
+In the intervening years, an adjustment is made based on new index values. See details below. In each year, the hyperrule is
+applied at the last step.
+
+PM_B_interim fits an assessment model once every three years with the high-compliance control rule for the CBA.
+In the intervening years, an adjustment is made based on new index values. See details below.
+
+PM_A_interim fits an assessment model once every three years with the ramped control rule for the CBA.
+In the intervening years, an adjustment is made based on new index values. See details below.
+
 I3 is an index-based management procedure proposed by SSPA (slope over 3 years)
 
 I5 is an index-based management procedure proposed by SSPA (slope over 5 years)
@@ -145,3 +203,33 @@ Model-based MPs use the RCM model (coded in TMB). By default, the RCM object dev
 To update the model for the MP, replace \code{SPHenv$RCM_hake} with a new \code{RCModel-class} object.
 }
 
+\section{Interim MP}{
+
+The interim procedure updates the CBA according to index observations between periodic
+assessment intervals. \strong{Always ensure to set:} \code{OM@interval <- 1}. The actual assessment frequency is specified in function argument for each
+management procedure (argument \code{assessment_interval}).
+
+In the year when the assessment is applied, the CBA is set by fitting the model and then running the harvest control rule.
+
+Between assessments, the CBA is updated as
+\deqn{
+\textrm{CBA}_{y+1} = C_{\textrm{ref}} (I_y + b \times s)/(I_{\textrm{ref}} + b \times s)
+}
+where \code{Cref} is the CBA calculated from the most recent assessment, \code{Iref} is the value of the index when \code{Cref} was calculated
+(see Equations 6 and 7 of Huynh et al. 2020). The value of \code{I_y} depends on \code{type}, with \code{b} and \code{s} equal zero unless
+\code{type = "buffer"}:
+
+\itemize{
+\item \code{"buffer"} - \code{I_y} is the most recent index with \code{b} is specifed by \code{type_par} (default = 1), and \code{s} is
+the standard deviation of index residuals from the most recent assessment.
+\item \code{"mean"} - \code{I_y} is the mean value of the index over the most recent \code{type_par} years (default = 3).
+\item \code{"loess"} - \code{I_y} is the most recent index predicted by a \link[stats:loess]{loess} smoother applied over the entire time series of the index.
+Use \code{type_par} to adjust the \code{span} parameter (default = 0.75).
+\item \code{"none"} - \code{I_y} is the most recent index. Index values are not adjusted in the interim procedure.
+}
+}
+
+\references{
+Huynh et al. 2020. The interim management procedure approach for assessed stocks: Responsive management advice and lower assessment
+frequency. Fish Fish. 21:663–679. \doi{10.1111/faf.12453}
+}

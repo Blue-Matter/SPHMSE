@@ -206,6 +206,7 @@ RCM2Assess <- function(RCModel) {
                       Dev = structure(report$log_rec_dev, names = Year),
                       Dev_type = "log-Recruitment deviations",
                       NLL = ifelse(is.character(opt), NA_real_, opt$objective),
+                      Index = report$Ipred,
                       obj = obj, opt = opt, SD = SD, TMB_report = report)
 
     ## Calculate reference points ----
