@@ -209,7 +209,7 @@ make_hake_MP <- function(HCR_fn) {
 
 
 
-#' @importFrom stats loess
+#' @importFrom stats loess sd
 make_hake_interim_MP <- function(HCR_fn) { # Compare with SAMtool::make_interim_MP
   HCR_fn <- substitute(HCR_fn)
   delta <- substitute(delta)
@@ -288,6 +288,12 @@ make_hake_interim_MP <- function(HCR_fn) { # Compare with SAMtool::make_interim_
         Rec@Misc$interim <- list(Cref = CBA, # A vector of reps long
                                  Iref = Mod@Index[nrow(Mod@Index), 1],
                                  next_assess_yr = Current_Yr + assessment_interval)
+        if (type == "buffer") {
+          Rec@Misc$interim$s <- log(Mod@Obs_Index[, 1]/Mod@Index[, 1]) %>% sd(na.rm = TRUE)
+        } else {
+          Rec@Misc$interim$s <- 0
+        }
+
       } else {
         # Assessment did not converge. Try the assessment again next year
         next_assess_yr <- Current_Yr + 1
@@ -343,8 +349,8 @@ make_hake_interim_MP <- function(HCR_fn) { # Compare with SAMtool::make_interim_
       if (is.null(TAC)) TAC <- NA_real_
       Rec@TAC <- TAC
 
-      if (exists("next_assess_yr", inherits = FALSE)) Rec@Misc$interim$next_assess_yr <- next_assess_yr
       Rec@Misc <- c(Rec@Misc, Data@Misc[[x]][setdiff(names(Data@Misc[[x]]), names(Rec@Misc))]) # Only add items that are missing from Rec@Misc
+      if (exists("next_assess_yr", inherits = FALSE)) Rec@Misc$interim$next_assess_yr <- next_assess_yr
     }
 
     # Apply the hyper rule last
@@ -369,7 +375,6 @@ make_hake_interim_MP <- function(HCR_fn) { # Compare with SAMtool::make_interim_
 
       Rec@TAC <- CBA_hyperrule
     }
-
     return(Rec)
   })
 

@@ -207,6 +207,7 @@ RCM2Assess <- function(RCModel) {
                       Dev = structure(report$log_rec_dev, names = Year),
                       Dev_type = "log-Recruitment deviations",
                       NLL = ifelse(is.character(opt), NA_real_, opt$objective),
+                      Obs_Index = structure(matrix(Data@AddInd[x, 1, ], ncol = 1), dimnames = list(Year, "Acoustic")),
                       Index = structure(report$Ipred, dimnames = list(Year, "Acoustic")),
                       obj = obj, opt = opt, SD = SD, TMB_report = report)
 
