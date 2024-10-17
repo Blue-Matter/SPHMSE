@@ -217,6 +217,8 @@ make_hake_interim_MP <- function(HCR_fn) { # Compare with SAMtool::make_interim_
 
   fn_body <- bquote({
 
+    type <- match.arg(type)
+
     # Sample IAA if needed
     if (max(Data@Year) > Data@LHYear) {
       Data@Misc[[x]]$IAA <- simIAA(x, Data)
@@ -336,7 +338,7 @@ make_hake_interim_MP <- function(HCR_fn) { # Compare with SAMtool::make_interim_
         b <- s <- 0
       }
 
-      Rec <- new("Rec")
+      #Rec <- new("Rec")
       TAC <- Cref * (I_y + b * s)/(Iref + b * s)
       if (is.null(TAC)) TAC <- NA_real_
       Rec@TAC <- TAC
