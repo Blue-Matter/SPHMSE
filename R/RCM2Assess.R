@@ -192,6 +192,7 @@ RCM2Assess <- function(RCModel) {
 
     Year <- Data@Year
     Yearplusone <- YearR <- c(Year, max(Year) + 1)
+    report$dynamic_SSB0 <- structure(report$dynamic_SSB0[1:nyears], names = Year)
 
     Assessment <- new("Assessment", Model = "RCM", Name = Data@Name, conv = conv,
                       h = report$h,
@@ -206,7 +207,7 @@ RCM2Assess <- function(RCModel) {
                       Dev = structure(report$log_rec_dev, names = Year),
                       Dev_type = "log-Recruitment deviations",
                       NLL = ifelse(is.character(opt), NA_real_, opt$objective),
-                      Index = report$Ipred,
+                      Index = structure(report$Ipred, dimnames = list(Year, "Acoustic")),
                       obj = obj, opt = opt, SD = SD, TMB_report = report)
 
     ## Calculate reference points ----
