@@ -29,6 +29,7 @@ class(Sin_Pesca) <- "MP"
 #' Effort can also be more efficient/powerful in the projection
 #' This code ensures that the correct fishing mortality is specified regardless of the
 #' improvement in the fishing effort, based on `MSEtool::FMSYref()`
+#' @export
 Manejo_Perfecto <- function(x, Data, reps = 1, ...) {
   y <- max(Data@Year) - Data@LHYear+1
   nyears <- length(Data@Misc$FleetPars$Find[x,])
