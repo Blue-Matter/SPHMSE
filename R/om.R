@@ -262,7 +262,8 @@ make_hake_OM <- function(
   RealData@Cat <- matrix(admb_dat$indices[, 3], 1, OM@nyears) # Adjusted catch
   RealData@CV_Cat <- matrix(0.05, 1, OM@nyears)
 
-  RealData@CAA <- array(admb_dat$cap.arr, c(1, OM@nyears, OM@maxage + 1))
+  RealData@CAA <- array(0, c(1, OM@nyears, OM@maxage + 1))
+  RealData@CAA[1, , age + 1] <- admb_dat$cap.arr
 
   # Pass data to OM ----
   OM@cpars$Data <- RealData
