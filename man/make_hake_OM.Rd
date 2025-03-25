@@ -17,9 +17,14 @@ make_hake_OM(
 )
 
 make_hake_OM_AMAC(
-  jjdir = "admb-assessment/om2",
-  model = "mc_0.0",
+  jjdir = "admb-assessment/jjm2",
+  model = "mcomun_0.2",
   Name = "Merluza comun - OM 2",
+  dat = "admb-assessment/datos_14021.dat",
+  rep = "admb-assessment/modelo_140.rep",
+  Rzero = 565.727,
+  Bzero = 581.976,
+  steepness = 0.7,
   nsim = 100,
   proyears = 36,
   AC = 0.65,
@@ -46,6 +51,12 @@ make_hake_OM_AMAC(
 \item{jjdir}{Directory of the JJM assessment}
 
 \item{model}{Character string for name of model}
+
+\item{Rzero}{Numeric, unfished recruitment parameter from JJM}
+
+\item{Bzero}{Numeric, unfished spawning biomass from JJM}
+
+\item{steepness}{Numeric, steepness parameter from JJM}
 }
 \value{
 \link[MSEtool:OM-class]{MSEtool::OM} object

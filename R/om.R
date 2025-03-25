@@ -290,12 +290,20 @@ make_hake_OM <- function(
 #' @name make_hake_OM
 #' @param jjdir Directory of the JJM assessment
 #' @param model Character string for name of model
+#' @param Rzero Numeric, unfished recruitment parameter from JJM
+#' @param Bzero Numeric, unfished spawning biomass from JJM
+#' @param steepness Numeric, steepness parameter from JJM
 #' @importFrom stats nlminb rnorm
 #' @export
 make_hake_OM_AMAC <- function(
-    jjdir = "admb-assessment/om2",
-    model = "mc_0.0",
+    jjdir = "admb-assessment/jjm2",
+    model = "mcomun_0.2",
     Name = "Merluza comun - OM 2",
+    dat = "admb-assessment/datos_14021.dat",
+    rep = "admb-assessment/modelo_140.rep",
+    Rzero = 565.727,
+    Bzero = 581.976,
+    steepness = 0.7,
     nsim = 100,
     proyears = 36,
     AC = 0.65,
@@ -303,32 +311,26 @@ make_hake_OM_AMAC <- function(
 ) {
 
   # Read ADMB report ----
-  admb_rep <- read_hake_rep("admb-assessment/om1/modelo_140.rep")
+  admb_rep <- read_hake_rep(rep)
 
   # Read ADMB data file ----
-  admb_dat <- read_hake_dat("admb-assessment/om1/datos_14022.dat")
+  admb_dat <- read_hake_dat(dat)
 
   # Read JJM report
-  if (file.exists(file.path(jjdir, "jjmR_hake.rds"))) {
-    res <- readRDS(file.path(jjdir, "jjmR_hake.rds"))
-  } else {
-
-    if (!requireNamespace("jjmR", quietly = FALSE)) {
-      stop("Need to install jjmr package from Github: remotes::install_github(\"SPRFMO/jjmr\")")
-    }
-
-    #if (!"jjmR" %in% installed.packages()) {
-    #  message("Installing jjmr package from Github..")
-    #  remotes::install_github("SPRFMO/jjmr")
-    #}
-    dir_cur <- getwd()
-    on.exit(setwd(dir_cur))
-    setwd(jjdir)
-    jjm_results <- jjmR::readJJM(model, output = getwd(), input = getwd())
-    res <- jjm_results[[1]]
-    saveRDS(res, file = "jjmR_hake.rds")
-
+  if (!requireNamespace("jjmR", quietly = FALSE)) {
+    stop("Need to install jjmr package from Github: remotes::install_github(\"SPRFMO/jjmr\")")
   }
+
+  #if (!"jjmR" %in% installed.packages()) {
+  #  message("Installing jjmr package from Github..")
+  #  remotes::install_github("SPRFMO/jjmr")
+  #}
+  dir_cur <- getwd()
+  on.exit(setwd(dir_cur))
+  setwd(jjdir)
+
+  jjm_results <- jjmR::readJJM(model, output = "results", input = NULL)
+  res <- jjm_results[[1]]
 
   # Historical parameters ----
   #nyears <- admb_dat$nanos
@@ -350,7 +352,7 @@ make_hake_OM_AMAC <- function(
   #phi0 <- SB0/R0
   #h <- 0.7
 
-  SRR <- res$output$Stock_1$Stock_Rec
+  #SRR <- res$output$Stock_1$Stock_Rec
   #plot(SRR[, 1], SRR[, 2], xlab = "Year", ylab = "SSB", typ = 'o')
   #plot(SRR[, 1], SRR[, 4], xlab = "Year", ylab = "Recruitment", typ = 'o')
   #plot(SRR[, 2], SRR[, 4], xlab = "SSB", ylab = "Recruitment", typ = 'o', xlim = c(0, 700), ylim = c(0, 2000))
@@ -358,15 +360,15 @@ make_hake_OM_AMAC <- function(
   #abline(a = 0, b = 1/phi0, col = 2)
 
   # Estimate stock recruit parameters from annual values
-  R0_start <- log(mean(SRR[, 4]))
-  h_start <- log(0.7 - 0.2)
-  opt <- nlminb(c(R0_start, h_start), SAMtool:::get_SR, E = SRR[, 2], R = SRR[, 4], EPR0 = SRR[1, 2]/SRR[1, 4], type = "Ricker")
-  SR_par <- SAMtool:::get_SR(opt$par, E = SRR[, 2], R = SRR[, 4], EPR0 = SRR[1, 2]/SRR[1, 4], opt = FALSE, figure = FALSE, type = "Ricker")
+  #R0_start <- log(mean(SRR[, 4]))
+  #h_start <- log(0.7 - 0.2)
+  #opt <- nlminb(c(R0_start, h_start), SAMtool:::get_SR, E = SRR[, 2], R = SRR[, 4], EPR0 = SRR[1, 2]/SRR[1, 4], type = "Ricker")
+  #SR_par <- SAMtool:::get_SR(opt$par, E = SRR[, 2], R = SRR[, 4], EPR0 = SRR[1, 2]/SRR[1, 4], opt = FALSE, figure = FALSE, type = "Ricker")
 
-  R0 <- SR_par$R0
-  SB0 <- SR_par$E0
-  phi0 <- SR_par$E0/SR_par$R0
-  h <- SR_par$h
+  R0 <- Rzero
+  SB0 <- Bzero
+  phi0 <- Bzero/Rzero
+  h <- steepness
 
   # Natural mortality ----
   M <- local({
@@ -402,7 +404,7 @@ make_hake_OM_AMAC <- function(
   set.seed(324)
   Vproj <- sapply(1:nsim, function(...) {
     delta <- rnorm(proyears, 0, 0.025)
-    delta2 <- rnorm(proyears * length(age), 0, 0.005) %>% matrix(proyears, length(age))
+    delta2 <- rnorm(proyears * length(age), 0, 0.01) %>% matrix(proyears, length(age))
 
     Vlast <- F_age[nyears, ]/max(F_age[nyears, ])
 
@@ -534,7 +536,8 @@ make_hake_OM_AMAC <- function(
   OM@Cbiascv <- 1e-8
   OM@Cobs <- c(0.01, 0.01)
 
-  RealData@CAA <- array(admb_dat$cap.arr, c(1, OM@nyears, OM@maxage + 1))
+  RealData@CAA <- array(0, c(1, OM@nyears, OM@maxage + 1))
+  RealData@CAA[1, , age + 1] <- admb_dat$cap.arr
 
   # Pass data to OM ----
   OM@cpars$Data <- RealData
