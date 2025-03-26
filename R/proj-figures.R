@@ -200,48 +200,29 @@ plot_Kobe_time <- function(MSE, output, type = c("B", "F")) {
 
     if (type == "B") {
 
-      Kgreen <- structure(
-        MSE@SB_SBMSY >= 1.05,
-        dimnames = list(Simulation = 1:MSE@nsim, MP = MSE@MPs,
-                        Year = 2022 + seq(1, MSE@proyears))) %>%
-        apply(2:3, mean) %>%
-        reshape2::melt() %>%
+      B_BMSY <- .get_array(MSE, "OM", type = "B_BMSY") %>%
+        filter(Year > MSE@OM$CurrentYr[1])
+
+      Kgreen <- summarise(B_BMSY, value = mean(value >= 1.05), .by = c(MP, Year)) %>%
         mutate(val = "green", name = "Subexplotado")
 
-      Kdarkgreen <- structure(
-        MSE@SB_SBMSY < 1.05 & MSE@SB_SBMSY >= 0.95,
-        dimnames = list(Simulation = 1:MSE@nsim, MP = MSE@MPs,
-                        Year = 2022 + seq(1, MSE@proyears))) %>%
-        apply(2:3, mean) %>%
-        reshape2::melt() %>%
+      Kdarkgreen <- summarise(B_BMSY, value = mean(value < 1.05 & value >= 0.95), .by = c(MP, Year)) %>%
         mutate(val = "darkgreen", name = "Plena explotado")
 
-      Kyellow <- structure(
-        MSE@SB_SBMSY < 0.95 & MSE@SB_SBMSY >= 0.5,
-        dimnames = list(Simulation = 1:MSE@nsim, MP = MSE@MPs,
-                        Year = 2022 + seq(1, MSE@proyears))) %>%
-        apply(2:3, mean) %>%
-        reshape2::melt() %>%
+      Kyellow <- summarise(B_BMSY, value = mean(value < 0.95 & value >= 0.5), .by = c(MP, Year)) %>%
         mutate(val = "yellow", name = "Sobreexplotado")
 
-      Kred <- structure(
-        MSE@SB_SBMSY < 0.5,
-        dimnames = list(Simulation = 1:MSE@nsim, MP = MSE@MPs,
-                        Year = 2022 + seq(1, MSE@proyears))) %>%
-        apply(2:3, mean) %>%
-        reshape2::melt() %>%
+      Kred <- summarise(B_BMSY, value = mean(value < 0.5), .by = c(MP, Year)) %>%
         mutate(val = "red", name = "Agotado")
 
       output <- rbind(Kgreen, Kdarkgreen, Kyellow, Kred)
 
     } else {
 
-      output <- structure(
-        MSE@F_FMSY <= 1,
-        dimnames = list(Simulation = 1:MSE@nsim, MP = MSE@MPs,
-                        Year = 2022 + seq(1, MSE@proyears))) %>%
-        apply(2:3, mean) %>%
-        reshape2::melt() %>%
+      F_FMSY <- .get_array(MSE, "OM", type = "F_FMSY") %>%
+        filter(Year > MSE@OM$CurrentYr[1])
+
+      output <- summarise(F_FMSY, value = mean(value <= 1), .by = c(MP, Year)) %>%
         mutate(val = "grey60", name = "No sobre pesca")
 
     }
