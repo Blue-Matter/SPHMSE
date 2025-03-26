@@ -317,20 +317,15 @@ make_hake_OM_AMAC <- function(
   admb_dat <- read_hake_dat(dat)
 
   # Read JJM report
-  if (!requireNamespace("jjmR", quietly = FALSE)) {
+  if (requireNamespace("jjmR", quietly = FALSE)) {
+    dir_cur <- getwd()
+    on.exit(setwd(dir_cur))
+    setwd(jjdir)
+    jjm_results <- jjmR::readJJM(model, output = "results", input = NULL)
+    res <- jjm_results[[1]]
+  } else {
     stop("Need to install jjmr package from Github: remotes::install_github(\"SPRFMO/jjmr\")")
   }
-
-  #if (!"jjmR" %in% installed.packages()) {
-  #  message("Installing jjmr package from Github..")
-  #  remotes::install_github("SPRFMO/jjmr")
-  #}
-  dir_cur <- getwd()
-  on.exit(setwd(dir_cur))
-  setwd(jjdir)
-
-  jjm_results <- jjmR::readJJM(model, output = "results", input = NULL)
-  res <- jjm_results[[1]]
 
   # Historical parameters ----
   #nyears <- admb_dat$nanos

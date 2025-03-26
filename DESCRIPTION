@@ -6,7 +6,8 @@ Authors@R:
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: Supports the operating model approach to management of common hake in Chile.
 License: GPL (>= 3)
-Imports: MSEtool, SAMtool, abind, dplyr, ggplot2, graphics, methods, mvtnorm, purrr, reshape2, rlang, utils
+Imports: MSEtool, SAMtool, abind, dplyr, ggplot2, ggpubr, graphics, methods, mvtnorm, purrr, reshape2, rlang, utils
+Suggests: jjmR
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
