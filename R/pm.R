@@ -538,8 +538,17 @@ plot_tradeoff <- function(
   g
 }
 
+#' Calculate performance metric
+#'
+#' Wrapper function that conveniently calculates the values for a set of performance metrics
+#'
+#' @param .mse MSE object
+#' @param PMs Character vector of the performance metric functions
+#' @param all_sims Logical, whether to report the value for individual simulations (TRUE), or averaged over all simulations (FALSE)
+#' @return If `all_sims = TRUE` a matrix, otherwise a data frame
 #' @importFrom methods slot
-PM_fn <- function(.mse, PMs, all_sims = FALSE) {
+#' @export
+calculate_PM <- function(.mse, PMs, all_sims = FALSE) {
   if (all_sims) {
     PMobj <- sapply(1:length(PMs), function(i) {
       x <- get(PMs[i])(.mse)
