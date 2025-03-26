@@ -252,3 +252,211 @@ plot_Kobe_time <- function(MSE, output, type = c("B", "F")) {
 
   g
 }
+
+
+
+
+
+.yield_curve <- function(mse, Fvec = seq(0.01, 1, 0.01), name = "OM", yr.ind = mse@nyears) {
+
+  nyears <- mse@nyears
+  #yr.ind <- mse@nyears
+  x <- 1 # First simulation, yield curve should be identical in all simulations
+
+  StockPars <- mse@Hist@SampPars$Stock
+  Wt_age_C <- mse@Hist@SampPars$Fleet$Wt_age_C
+  V <- mse@Hist@SampPars$Fleet$V
+
+  maxage <- StockPars$maxage
+  plusgroup <- StockPars$plusgroup
+  hs <- StockPars$hs
+  SSBpR <- StockPars$SSBpR
+  spawn_time_frac <- StockPars$spawn_time_frac
+  SRrel <- StockPars$SRrel
+  R0 <- StockPars$R0
+
+  if (length(yr.ind)==1) {
+    M_at_Age <- StockPars$M_ageArray[x,,yr.ind]
+    Wt_at_Age <- StockPars$Wt_age[x,, yr.ind]
+    Fec_at_Age <- StockPars$Fec_Age[x,, yr.ind]
+    Mat_at_Age <- StockPars$Mat_age[x,, yr.ind]
+    V_at_Age <- V[x,, yr.ind]
+    Wt_at_Age_C <- Wt_age_C[x,, yr.ind]
+  } else {
+    M_at_Age <- apply(StockPars$M_ageArray[x,,yr.ind], 1, mean)
+    Wt_at_Age <- apply(StockPars$Wt_age[x,, yr.ind], 1, mean)
+    Fec_at_Age <- apply(StockPars$Fec_Age[x,, yr.ind], 1, mean)
+    Mat_at_Age <- apply(StockPars$Mat_age[x,, yr.ind], 1, mean)
+    V_at_Age <- apply(V[x,, yr.ind], 1, mean)
+    Wt_at_Age_C <- apply(Wt_age_C[x,, yr.ind], 1, mean)
+  }
+
+  # check for M = 0 in MOMs where maxage isn't the same for each stock
+  if (max(which(M_at_Age!=0)) != (maxage+1)) {
+    ind <- which(M_at_Age>0)
+    M_at_Age <- M_at_Age[ind]
+    Wt_at_Age <- Wt_at_Age[ind]
+    Mat_at_Age <- Mat_at_Age[ind]
+    Fec_at_Age <- Fec_at_Age[ind]
+    V_at_Age <- V_at_Age[ind]
+    Wt_at_Age_C <- Wt_at_Age_C[ind]
+
+    maxage <- length(ind)-1
+  }
+
+  YC <- sapply(
+    log(Fvec),
+    MSEtool:::MSYCalcs,
+    M_at_Age,
+    Wt_at_Age,
+    Mat_at_Age,
+    Fec_at_Age,
+    V_at_Age,
+    Wt_at_Age_C,
+    maxage,
+    relRfun = StockPars$relRfun,
+    SRRpars=StockPars$SRRpars[[x]],
+    R0[x], SRrel[x], hs[x], SSBpR[x, 1], opt=2,
+    plusgroup=plusgroup,
+    spawn_time_frac=spawn_time_frac[x]
+  )
+
+  out <- as.data.frame(t(YC))
+  out$OM <- name
+
+  return(out)
+}
+
+
+.per_recruit <- function(mse, Fvec = seq(0.01, 1, 0.01), name = "OM", yr.ind = mse@nyears) {
+
+  nyears <- mse@nyears
+  #yr.ind <- mse@nyears
+  x <- 1 # First simulation, yield curve should be identical in all simulations
+
+  StockPars <- mse@Hist@SampPars$Stock
+  Wt_age_C <- mse@Hist@SampPars$Fleet$Wt_age_C
+  V <- mse@Hist@SampPars$Fleet$V
+
+  maxage <- StockPars$maxage
+  plusgroup <- StockPars$plusgroup
+  hs <- StockPars$hs
+  SSBpR <- StockPars$SSBpR
+  spawn_time_frac <- StockPars$spawn_time_frac
+  SRrel <- StockPars$SRrel
+  R0 <- StockPars$R0
+
+  if (length(yr.ind)==1) {
+    M_at_Age <- StockPars$M_ageArray[x,,yr.ind]
+    Wt_at_Age <- StockPars$Wt_age[x,, yr.ind]
+    Fec_at_Age <- StockPars$Fec_Age[x,, yr.ind]
+    Mat_at_Age <- StockPars$Mat_age[x,, yr.ind]
+    V_at_Age <- V[x,, yr.ind]
+    Wt_at_Age_C <- Wt_age_C[x,, yr.ind]
+  } else {
+    M_at_Age <- apply(StockPars$M_ageArray[x,,yr.ind], 1, mean)
+    Wt_at_Age <- apply(StockPars$Wt_age[x,, yr.ind], 1, mean)
+    Fec_at_Age <- apply(StockPars$Fec_Age[x,, yr.ind], 1, mean)
+    Mat_at_Age <- apply(StockPars$Mat_age[x,, yr.ind], 1, mean)
+    V_at_Age <- apply(V[x,, yr.ind], 1, mean)
+    Wt_at_Age_C <- apply(Wt_age_C[x,, yr.ind], 1, mean)
+  }
+
+  # check for M = 0 in MOMs where maxage isn't the same for each stock
+  if (max(which(M_at_Age!=0)) != (maxage+1)) {
+    ind <- which(M_at_Age>0)
+    M_at_Age <- M_at_Age[ind]
+    Wt_at_Age <- Wt_at_Age[ind]
+    Mat_at_Age <- Mat_at_Age[ind]
+    Fec_at_Age <- Fec_at_Age[ind]
+    V_at_Age <- V_at_Age[ind]
+    Wt_at_Age_C <- Wt_at_Age_C[ind]
+
+    maxage <- length(ind)-1
+  }
+
+  Ref_search <- MSEtool:::Ref_int_cpp(
+    Fvec,
+    M_at_Age = M_at_Age,
+    Wt_at_Age = Wt_at_Age,
+    Mat_at_Age = Mat_at_Age,
+    Fec_at_Age=Fec_at_Age,
+    V_at_Age = V_at_Age,
+    Wt_at_Age_C = Wt_at_Age_C,
+    StockPars$relRfun,
+    StockPars$SRRpars[[x]],
+    maxage = maxage,
+    plusgroup = plusgroup,
+    spawn_time_frac=StockPars$spawn_time_frac[x]
+  )
+
+  data.frame(
+    F = Fvec,
+    YPR = Ref_search[1, ],
+    SPR = Ref_search[2, ],
+    OM = name
+  )
+}
+
+#' Yield curve
+#'
+#' Compare yield curve from set of operating models
+#'
+#' @param MSE_list List of [MSEtool::MSE-class] objects
+#' @param names Character vector for the name of each operating model
+#' @param Fvec Numeric vector for values of fishing mortality to calculate the yield curve
+#' @param Fmaxplot Numeric, axis limit for F in the ggplot figure
+#' @param yr.ind Integer, year of which to obtain the biological parameters and selectivity for the yield curve
+#' @param by_OM Logical, whether to plot individual panels for each operating model
+#' @return ggplot object
+#' @export
+#' @importFrom ggpubr ggarrange
+plot_yield_curve <- function(MSE_list, names, Fvec = c(1e-8, seq(0.01, 3, 0.01)), Fmaxplot = 0.8,
+                             yr.ind = MSE_list[[1]]@nyears, by_OM = FALSE) {
+
+  RelRec <- SPR <- SB_SB0 <- NULL
+
+  YC <- Map(.yield_curve, mse = MSE_list, name = names, MoreArgs = list(Fvec = Fvec, yr.ind = yr.ind)) %>%
+    bind_rows() %>%
+    filter(RelRec > 0)
+
+  PR <- Map(.per_recruit, mse = MSE_list, name = names, MoreArgs = list(Fvec = Fvec, yr.ind = yr.ind)) %>%
+    bind_rows()
+
+  if (by_OM) {
+
+    g <- ggplot(YC, aes(F, Yield, colour = OM)) +
+      geom_line() +
+      coord_cartesian(xlim = c(0, Fmaxplot)) +
+      expand_limits(y = 0) +
+      labs(colour = "MO") +
+      facet_wrap(vars(OM))
+    return(g)
+
+  } else {
+
+    g1 <- ggplot(YC, aes(F, Yield, colour = OM)) +
+      geom_line() +
+      coord_cartesian(xlim = c(0, Fmaxplot)) +
+      expand_limits(y = 0) +
+      labs(colour = "MO") +
+      guides(colour = guide_legend(ncol = 2))
+
+    g2 <- ggplot(PR, aes(F, SPR, colour = OM)) +
+      geom_line() +
+      coord_cartesian(xlim = c(0, Fmaxplot)) +
+      expand_limits(y = 0) +
+      labs(colour = "MO") +
+      guides(colour = guide_legend(ncol = 2))
+
+    g3 <- ggplot(YC, aes(SB_SB0, Yield, colour = OM)) +
+      geom_line() +
+      labs(x = expression(BD/BD[0]), colour = "MO") +
+      guides(colour = guide_legend(ncol = 2))
+
+    g <- ggpubr::ggarrange(g1, g3, g2, ncol = 2, nrow = 2, common.legend = TRUE, legend = "bottom")
+
+    return(g)
+  }
+}
+
