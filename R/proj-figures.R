@@ -11,7 +11,7 @@
     "CBA" = .mse@TAC,
     "Catch" = .mse@Catch,
     "Index" = NULL,
-    "R" = apply(.mse@N[, 1, , , ], 1:3, sum),
+    "R" = apply(.mse@N[, 3, , , ], 1:3, sum), # age 2
   )
 
   if (!is.null(x)) {
