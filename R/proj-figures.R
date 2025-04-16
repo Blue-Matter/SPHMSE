@@ -28,7 +28,7 @@
     "Catch" = .mse@CB_hist,
     "CBA" = NULL,
     "Index" = NULL,
-    "R" = NULL
+    "R" = apply(.mse@Hist@AtAge$Number[, 3, , ], 1:2, sum) # age 2
   )
   if (!is.null(xhist)) {
     xhist <- xhist %>%
