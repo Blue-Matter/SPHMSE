@@ -3,7 +3,7 @@ Title: MSE functions for Southern Pacific Hake, Chile
 Version: 0.1.0
 Authors@R: 
     person("Quang", "Huynh", , "quang@bluematterscience.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+           comment = c(ORCID = "0000-0001-7835-4376"))
 Description: Supports the operating model approach to management of common hake in Chile.
 License: GPL (>= 3)
 Imports: MSEtool, SAMtool, abind, dplyr, ggplot2, ggpubr, graphics, methods, mvtnorm, purrr, reshape2, rlang, utils
