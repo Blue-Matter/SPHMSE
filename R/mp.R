@@ -60,7 +60,7 @@ formals(SPH_A)$relF <- c(0.6, 1)
 SPH_C <- SPH_B <- SPH_A
 formals(SPH_B)$relF <- c(0.75, 1)
 
-formals(SPH_C)$OCP <- c(0.25, 0.5, 0.95)
+formals(SPH_C)$OCP <- c(0.25, 0.5, 0.95) * 0.40 # Control points relative to 40% B0
 formals(SPH_C)$relF <- c(0.1, 0.6, 0.95)
 
 # Additional functions for stochastic MP code
