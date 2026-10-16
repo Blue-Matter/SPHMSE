@@ -7,6 +7,7 @@
 \alias{PM_A}
 \alias{PM_B}
 \alias{PM_C}
+\alias{PM_C_r}
 \alias{PM_A_interim}
 \alias{PM_B_interim}
 \alias{PM_C_interim}
@@ -41,6 +42,16 @@ PM_B(
 )
 
 PM_C(
+  x = 1,
+  Data,
+  reps = 1,
+  delta = c(0.85, 1.15),
+  CBA_previous,
+  seed = 1,
+  verbose = FALSE
+)
+
+PM_C_r(
   x = 1,
   Data,
   reps = 1,
@@ -178,6 +189,8 @@ PM_A fits an assessment model and applies the low-compliance control rule for th
 PM_B fits an assessment model and applies the high-compliance control rule for the CBA
 
 PM_C fits an assessment model and applies the ramped harvest control rule for the CBA
+
+PM_C_r fits an assessment model and applies the revised ramped harvest control rule for the CBA
 
 PM_A_interim fits an assessment model once every three years with the low-compliance control rule for the CBA.
 In the intervening years, an adjustment is made based on new index values. See details below. In each year, the hyperrule is

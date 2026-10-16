@@ -63,6 +63,10 @@ formals(SPH_B)$relF <- c(0.75, 1)
 formals(SPH_C)$OCP <- c(0.25, 0.5, 0.95)
 formals(SPH_C)$relF <- c(0.1, 0.6, 0.95)
 
+SPH_C_r <- SPH_C
+formals(SPH_C_r)$OCP <- c(0.25, 0.5, 0.95) * 0.4
+
+
 # Additional functions for stochastic MP code
 catch_eq <- function(Ftarget, M, N, wt, sel) {
   Fage <- sel * Ftarget
@@ -426,6 +430,11 @@ PM_B <- make_hake_MP(SPH_B)
 #' @details PM_C fits an assessment model and applies the ramped harvest control rule for the CBA
 #' @export
 PM_C <- make_hake_MP(SPH_C)
+
+#' @name MP
+#' @details PM_C_r fits an assessment model and applies the revised ramped harvest control rule for the CBA
+#' @export
+PM_C_r <- make_hake_MP(SPH_C_r)
 
 
 #' @name MP
